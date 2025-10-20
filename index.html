@@ -1,291 +1,205 @@
-<!DOCTYPE html>
-<html lang="fr">
-
+<!doctype html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>You Are Hacked — Demo</title>
+  <!-- Use a monospace/techy font -->
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#050607;
+      --green:#00ff6a;
+      --accent:#64ffda;
+      --glass: rgba(255,255,255,0.03);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      background: radial-gradient(ellipse at center, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.85) 60%), var(--bg);
+      color:var(--green);
+      font-family: 'Share Tech Mono', monospace;
+      overflow:hidden;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
 
-  <!--=============== FAVICON ===============-->
-  <link rel="shortcut icon" href="assets/img/favicon.png" type="image/x-icon" />
+    /* Matrix-like moving columns */
+    .matrix {
+      position:fixed; inset:0; z-index:0; pointer-events:none; opacity:0.16;
+      background-image: linear-gradient(180deg, rgba(0,0,0,0) 0 30%, rgba(0,0,0,0.35) 100%);
+      mix-blend-mode:screen;
+    }
+    .matrix canvas{width:100%;height:100%;display:block}
 
-  <!--=============== REMIXICONS ===============-->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.2.0/remixicon.css" />
+    /* Center card */
+    .card{
+      position:relative; z-index:2;
+      width:min(880px,92%);
+      margin:6vh auto;
+      padding:36px;
+      border-radius:12px;
+      background: linear-gradient(180deg, rgba(0,0,0,0.35), rgba(255,255,255,0.02));
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.02);
+      border:1px solid rgba(0,255,170,0.06);
+      text-align:center;
+    }
 
-  <!--=============== SWIPER CSS ===============-->
-  <link rel="stylesheet" href="assets/css/swiper-bundle.min.css" />
+    /* Glitchy big heading */
+    h1{
+      margin:8px 0 12px;
+      font-size: clamp(36px, 7vw, 84px);
+      line-height:0.9;
+      letter-spacing:1px;
+      position:relative;
+      color:var(--green);
+      text-shadow:
+        0 0 18px rgba(0,255,120,0.15),
+        0 0 36px rgba(0,255,120,0.07);
+      display:inline-block;
+      padding:6px 18px;
+      background:linear-gradient(90deg, rgba(0,0,0,0.15), rgba(0,255,120,0.02));
+      border-radius:6px;
+      overflow:visible;
+    }
+    /* duplicate layers for glitch */
+    .glitch{position:relative;display:inline-block}
+    .glitch::before, .glitch::after{
+      content:attr(data-text);
+      position:absolute; left:0; top:0; width:100%;
+      mix-blend-mode:screen; pointer-events:none;
+    }
+    .glitch::before{
+      left:2px; text-shadow:-2px 0 rgba(255,0,50,0.8); clip-path:polygon(0 0,100% 0,100% 45%,0 50%);
+      animation:glitchTop 2.2s infinite linear;
+      opacity:0.85;
+    }
+    .glitch::after{
+      left:-2px; text-shadow:-2px 0 rgba(0,150,255,0.7); clip-path:polygon(0 55%,100% 50%,100% 100%,0 100%);
+      animation:glitchBottom 2.7s infinite linear;
+      opacity:0.75;
+    }
+    @keyframes glitchTop{
+      0%{transform:translateX(0)}
+      20%{transform:translateX(-6px)}
+      40%{transform:translateX(6px)}
+      60%{transform:translateX(-3px)}
+      80%{transform:translateX(2px)}
+      100%{transform:translateX(0)}
+    }
+    @keyframes glitchBottom{
+      0%{transform:translateX(0)}
+      10%{transform:translateX(8px)}
+      30%{transform:translateX(-8px)}
+      50%{transform:translateX(4px)}
+      80%{transform:translateX(-2px)}
+      100%{transform:translateX(0)}
+    }
 
-  <!--=============== CSS ===============-->
-  <link rel="stylesheet" href="assets/css/styles.css" />
+    /* flicker effect */
+    .flicker{
+      animation: flickerAnim 3.6s infinite;
+    }
+    @keyframes flickerAnim{
+      0%{opacity:1;filter:brightness(1)}
+      3%{opacity:0.3;filter:brightness(.6)}
+      6%{opacity:1}
+      20%{opacity:0.85}
+      26%{opacity:0.4}
+      30%{opacity:1}
+      100%{opacity:1}
+    }
 
-  <title>Usman Traders</title>
+    /* subheading and small text */
+    .sub{
+      margin-top:8px; font-size:14px; opacity:0.8;
+      color:var(--accent);
+    }
+
+    /* image placeholder */
+    .hero-image{
+      margin-top:22px; max-width:100%; height:auto; border-radius:8px; border:1px solid rgba(0,255,140,0.06);
+      box-shadow: 0 8px 30px rgba(2,6,12,0.6);
+    }
+
+    /* scanline overlay */
+    .scanlines{
+      position:fixed; inset:0; z-index:1; pointer-events:none; mix-blend-mode:overlay; opacity:0.06;
+      background-image:linear-gradient(rgba(0,0,0,0) 50%, rgba(0,0,0,0.06) 50%);
+      background-size:100% 4px;
+    }
+
+    /* small terminal-like box */
+    .term{
+      margin-top:20px; text-align:left; background:var(--glass); padding:14px; border-radius:8px; font-size:13px;
+      color:#a7ffd6; line-height:1.5; border:1px solid rgba(0,255,140,0.04);
+    }
+
+    /* responsive tweaks */
+    @media (max-width:600px){
+      .card{padding:18px}
+      .term{font-size:12px}
+    }
+  </style>
 </head>
-
 <body>
-  <!--==================== HEADER ====================-->
-  <header class="header" id="header">
-    <nav class="nav container">
-      <a href="#" class="nav__logo">
-        <i class="ri-building-3-line"></i>
-        <span>Usman Traders</span>
-      </a>
+  <div class="matrix" aria-hidden="true"><canvas id="matrix"></canvas></div>
+  <div class="scanlines" aria-hidden="true"></div>
 
-      <div class="nav__menu" id="nav-menu">
-        <ul class="nav__list">
-          <li><a href="#home" class="nav__link">Home</a></li>
-          <li><a href="#about" class="nav__link">About</a></li>
-          <li><a href="#services" class="nav__link">Services</a></li>
-          <!-- <li><a href="#projects" class="nav__link">Projets</a></li> -->
-          <li><a href="#contact" class="nav__link button">Contact</a></li>
-        </ul>
+  <main class="card">
+    <!-- Glitch + flicker heading -->
+    <h1 class="flicker glitch" data-text="you are hacked">you are hacked</h1>
 
-        <!-- Close Button -->
-        <div class="nav__close" id="nav-close">
-          <i class="ri-close-large-line"></i>
-        </div>
-      </div>
+    <p class="sub">If you pay me, I will fix this.</p>
 
-      <!-- Toggle button -->
-      <div class="nav__toggle" id="nav-toggle">
-        <i class="ri-apps-2-line"></i>
-      </div>
-    </nav>
-  </header>
-  <main class="main">
-    <!--==================== HOME ====================-->
-    <section class="home section" id="home">
-      <img src="assets/img/home-lines-bg.svg" alt="image" class="home__lines" />
+    <!-- Image placeholder: replace IMAGE_PATH_HERE with your path -->
+    <img class="hero-image" src="./assets//img/hacked.jpg" alt="hacker visual placeholder" />
 
-      <div class="home__container container grid">
-        <div class="home__content grid">
-          <div class="home__data">
-            <h1 class="home__title">
-              Create The <br /> Constructions <br /> You Want
-            </h1>
-            <p class="home__description">
-              We offer you the best design, construction, and maintenance services for your home and your family
-            </p>
-            <div class="home__buttons">
-              <a href="#services" class="button"> Services</a>
-              <a href="#projects" class="button__link">
-                <span>Projects</span>
-                <i class="ri-arrow-right-line"></i>
-              </a>
-            </div>
-          </div>
-
-          <div class="home__info">
-            <div>
-              <h3 class="home__info-title">2+</h3>
-              <p class="home__info-description">Years<br />Of Experience</p>
-            </div>
-            <div>
-              <h3 class="home__info-title">500</h3>
-              <p class="home__info-description">Projects <br /> Completed</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="home__images">
-          <img src="assets/img/home-img-1.jpg" alt="image" class="home__img-1" />
-          <img src="assets/img/home-img-2.jpg" alt="image" class="home__img-2" />
-        </div>
-      </div>
-    </section>
-
-    <section class="about section" id="about">
-      <div class="about__container container grid">
-        <div class="about__data">
-          <span class="section__subtitle">About Us</span>
-          <h2 class="section__title">We provide the best service <br /> for construction</h2>
-          <p class="about__description">
-            We are committed to providing the best professionals to make your project a unique and unmatched
-            construction work
-          </p>
-          <ul class="about__list grid">
-            <li class="about__list-item"><i class="ri-checkbox-circle-line"></i><span>Skilled Workers</span></li>
-            <li class="about__list-item"><i class="ri-checkbox-circle-line"></i><span>Guaranted Quality</span></li>
-            <li class="about__list-item"><i class="ri-checkbox-circle-line"></i><span>Deep Experience</span></li>
-            <li class="about__list-item"><i class="ri-checkbox-circle-line"></i><span>Customized Quotes</span></li>
-          </ul>
-          <a href="#services" class="button">View My Services</a>
-        </div>
-
-        <div class="about__images">
-          <img src="assets/img/home-img-10.jpg" alt="image" class="about__img-1" />
-          <img src="assets/img/home-img-11.jpg" alt="image" class="about__img-2" />
-        </div>
-      </div>
-    </section>
-
-    <!--==================== SERVICES ====================-->
-    <section class="services section" id="services">
-      <div class="services__container container grid">
-        <div class="services__data">
-          <div>
-            <span class="section__subtitle">OUR SERVICES</span>
-            <h2 class="section__title">High-Quality <br /> Construction Services</h2>
-          </div>
-          <p class="services__description">
-            We offer a wide range of services, ensuring trust and safety in every construction project.
-          </p>
-          <a href="#contact" class="button">Contact Us</a>
-        </div>
-
-        <div class="services__swiper swiper">
-          <div class="swiper-wrapper">
-            <article class="services__card swiper-slide">
-              <div class="services__icon"><i class="ri-building-line"></i></div>
-              <h3 class="services__title">Residential <br /> Construction</h3>
-              <p>We build with highly skilled professionals to deliver top-quality work,
-                ensuring a safe and long-lasting home.</p>
-            </article>
-
-            <article class="services__card swiper-slide">
-              <div class="services__icon"><i class="ri-home-office-line"></i></div>
-              <h3 class="services__title">Living Space <br /> Design</h3>
-              <p>Our team designs and organizes spaces with precision, creating functional
-                and comfortable living environments.</p>
-            </article>
-
-            <article class="services__card swiper-slide">
-              <div class="services__icon"><i class="ri-tools-line"></i></div>
-              <h3 class="services__title">Maintenance & <br /> Repairs</h3>
-              <p>We provide reliable maintenance and repair services, ensuring your
-                property remains safe, functional, and durable.</p>
-            </article>
-
-            <article class="services__card swiper-slide">
-              <div class="services__icon"><i class="ri-box-3-line"></i></div>
-              <h3 class="services__title">Tile & <br /> Other Installations</h3>
-              <p>From ceramic tiles to specialized finishes, we handle installations
-                with accuracy and quality craftsmanship.</p>
-            </article>
-
-            <article class="services__card swiper-slide">
-              <div class="services__icon"><i class="ri-drop-line"></i></div>
-              <h3 class="services__title">Water & <br /> Drainage Installation</h3>
-              <p>We specialize in safe and efficient water supply systems and drainage
-                installations to support sustainable living.</p>
-            </article>
-          </div>
-        </div>
-
-        <!-- Nav Buttons -->
-        <div class="swiper-button-prev"><i class="ri-arrow-left-line"></i></div>
-        <div class="swiper-button-next"><i class="ri-arrow-right-line"></i></div>
-      </div>
-      <div class="services__shape"></div>
-    </section>
-
-    <!--==================== CONTACT ====================-->
-    <section class="contact section" id="contact">
-      <div class="container">
-        <span class="section__subtitle">CONTACT US</span>
-        <h2 class="section__title">Contact Us & Start Building Today</h2>
-
-        <div class="contact__container grid">
-          <img src="assets/img/contact-img.jpg" alt="image" class="contact__img" />
-
-          <div class="contact__data grid">
-            <div class="contact__card">
-              <div class="contact__icon"><i class="ri-map-pin-2-line"></i></div>
-              <h3 class="contact__title">Address</h3>
-              <address class="contact__info">
-                37 Bramingham Road, <br />Luton LU3 2SL<br />United Kingdom
-              </address>
-            </div>
-
-            <div class="contact__card">
-              <div class="contact__icon"><i class="ri-phone-line"></i></div>
-              <h3 class="contact__title">Telephone</h3>
-              <address class="contact__info">+44 7877 245620</address>
-            </div>
-
-            <div class="contact__card">
-              <div class="contact__icon"><i class="ri-message-3-line"></i></div>
-              <h3 class="contact__title">Contact Me</h3>
-              <div class="contact__social">
-                <a href="https://api.whatsapp.com/send?phone=447877245620&text=Bonjour, plus d’informations !"
-                  target="_blank" class="contact__social-link">
-                  <i class="ri-whatsapp-line"></i>
-                </a>
-
-                <a href="https://www.facebook.com/720111197863264?" target="_blank" class="footer__social-link"><i
-                    class="ri-facebook-circle-line"></i></a>
-                <a href="https://www.instagram.com/usman.traders77?igsh=NmN4eWVsMDFoeXV2" target="_blank"
-                  class="footer__social-link"><i class="ri-instagram-line"></i></a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+    <div class="term" role="status" aria-live="polite">
+      <strong>&gt; connection:</strong> established<br>
+      <strong>&gt; host:</strong> unknown<br>
+      <strong>&gt; status:</strong> <span style="color:var(--green);">root shell</span><br>
+      <strong>&gt; note:</strong> this is a visual demo only.
+    </div>
   </main>
 
-  <!--==================== FOOTER ====================-->
-  <footer class="footer">
-    <div class="footer__container container grid">
-      <div>
-        <a href="#" class="footer__logo"><i class="ri-building-3-line"></i><span>Usman Traders</span></a>
-        <p class="footer__description">We build safely <br /> with trust in your homes.</p>
-        <address class="footer__email">Email : usmanvirk258@hotmail.com</address>
-      </div>
+  <script>
+    // MATRIX RAIN: lightweight canvas effect
+    (function(){
+      const canvas = document.getElementById('matrix');
+      const ctx = canvas.getContext('2d');
+      let w = canvas.width = innerWidth;
+      let h = canvas.height = innerHeight;
+      const cols = Math.floor(w / 18) + 1;
+      const ypos = Array(cols).fill(0);
 
-      <div class="footer__content grid">
-        <div>
-          <h3 class="footer__title">Company</h3>
-          <ul class="footer__links">
-            <li><a href="#home" class="footer__link">Home</a></li>
-            <li><a href="#about" class="footer__link">About</a></li>
-            <li><a href="#services" class="footer__link">Services</a></li>
-          </ul>
-        </div>
+      function setSize(){ w = canvas.width = innerWidth; h = canvas.height = innerHeight; }
+      addEventListener('resize', setSize);
 
-        <div>
-          <h3 class="footer__title">Information</h3>
-          <ul class="footer__list">
-            <li>
-              <address class="footer__info">37 Bramingham Road,<br />Luton LU3 2SL</address>
-            </li>
+      function draw(){
+        ctx.fillStyle = 'rgba(0,0,0,0.06)';
+        ctx.fillRect(0,0,w,h);
+        ctx.fillStyle = 'rgba(0,255,140,0.09)';
+        ctx.font = '14px "Share Tech Mono", monospace';
+        for(let i=0;i<ypos.length;i++){
+          const text = String.fromCharCode(33+Math.random()*94);
+          const x = i * 18;
+          ctx.fillText(text, x, ypos[i]*18);
+          if(ypos[i]*18 > h && Math.random() > 0.975) ypos[i]=0;
+          ypos[i]++;
+        }
+        requestAnimationFrame(draw);
+      }
+      draw();
+    })();
 
-            <li>
-              <address class="footer__info">7am - 6pm</address>
-            </li>
-          </ul>
-        </div>
-
-        <div>
-          <h3 class="footer__title">Social Networks</h3>
-          <div class="footer__social">
-            <a href="https://www.facebook.com/720111197863264?" target="_blank" class="footer__social-link"><i
-                class="ri-facebook-circle-line"></i></a>
-            <a href="https://www.instagram.com/usman.traders77?igsh=NmN4eWVsMDFoeXV2" target="_blank"
-              class="footer__social-link"><i class="ri-instagram-line"></i></a>
-            <a href="https://www.youtube.com/" target="_blank" class="footer__social-link"><i
-                class="ri-youtube-line"></i></a>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <span class="footer__copy">
-      &#169; All Rights Reserved | Usman Traders <br />
-      Developed by Ali Yahya
-    </span>
-
-  </footer>
-
-  <!--========== SCROLL UP ==========-->
-  <a href="#" class="scrollup" id="scroll-up"><i class="ri-arrow-up-line"></i></a>
-
-  <!--=============== SCROLLREVEAL ===============-->
-  <script src="assets/js/scrollreveal.min.js"></script>
-
-  <!--=============== SWIPER JS ===============-->
-  <script src="assets/js/swiper-bundle.min.js"></script>
-
-  <!--=============== MAIN JS ===============-->
-  <script src="assets/js/main.js"></script>
+    // small accessibility: focus heading on load
+    window.addEventListener('load', ()=>{
+      const h = document.querySelector('h1');
+      if(h) h.setAttribute('tabindex','-1');
+      try{ h.focus() }catch(e){}
+    });
+  </script>
 </body>
-
 </html>
